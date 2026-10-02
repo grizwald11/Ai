@@ -6,25 +6,26 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 
 // Types
-type Product = { id: string; name: string; category: string; price: number; minQty: number };
+// Pricing is not stored in this app: wholesale pricing is quoted per account after an order request.
+type Product = { id: string; name: string; category: string; minQty: number };
 type CartItem = Product & { qty: number };
 
-// Products Data - VAYU CBD wholesale catalog
+// Sample catalog (demo data): product names and minimums only
 const PRODUCTS: Product[] = [
-  { id: '1', name: 'Donnie Burger THCA Flower', category: 'Flower', price: 150, minQty: 10 },
-  { id: '2', name: 'GMO THCA Flower', category: 'Flower', price: 145, minQty: 10 },
-  { id: '3', name: 'Alien Zours THCA Flower', category: 'Flower', price: 155, minQty: 10 },
-  { id: '4', name: 'Purple Poison THCA Flower', category: 'Flower', price: 150, minQty: 10 },
-  { id: '5', name: 'Lemon Gelato THCA Flower', category: 'Flower', price: 148, minQty: 10 },
-  { id: '6', name: 'Blackberry Pre-Roll 1g', category: 'Pre-Rolls', price: 8, minQty: 50 },
-  { id: '7', name: 'Tahoe OG Pre-Roll 1g', category: 'Pre-Rolls', price: 8, minQty: 50 },
-  { id: '8', name: 'Beignets Pre-Roll 1g', category: 'Pre-Rolls', price: 8, minQty: 50 },
-  { id: '9', name: 'Governmint Oasis Pre-Roll 1g', category: 'Pre-Rolls', price: 8, minQty: 50 },
-  { id: '10', name: 'Live Rosin Disposable Vape', category: 'Vapes', price: 22, minQty: 25 },
-  { id: '11', name: 'Diamond Sauce Disposable', category: 'Vapes', price: 20, minQty: 25 },
-  { id: '12', name: 'Cold Cured Live Rosin 1g', category: 'Concentrates', price: 35, minQty: 20 },
-  { id: '13', name: 'Delta 8 Gummies 500mg', category: 'Gummies', price: 12, minQty: 50 },
-  { id: '14', name: 'Delta 9 Gummies 300mg', category: 'Gummies', price: 15, minQty: 50 },
+  { id: '1', name: 'Donnie Burger THCA Flower', category: 'Flower', minQty: 10 },
+  { id: '2', name: 'GMO THCA Flower', category: 'Flower', minQty: 10 },
+  { id: '3', name: 'Alien Zours THCA Flower', category: 'Flower', minQty: 10 },
+  { id: '4', name: 'Purple Poison THCA Flower', category: 'Flower', minQty: 10 },
+  { id: '5', name: 'Lemon Gelato THCA Flower', category: 'Flower', minQty: 10 },
+  { id: '6', name: 'Blackberry Pre-Roll 1g', category: 'Pre-Rolls', minQty: 50 },
+  { id: '7', name: 'Tahoe OG Pre-Roll 1g', category: 'Pre-Rolls', minQty: 50 },
+  { id: '8', name: 'Beignets Pre-Roll 1g', category: 'Pre-Rolls', minQty: 50 },
+  { id: '9', name: 'Governmint Oasis Pre-Roll 1g', category: 'Pre-Rolls', minQty: 50 },
+  { id: '10', name: 'Live Rosin Disposable Vape', category: 'Vapes', minQty: 25 },
+  { id: '11', name: 'Diamond Sauce Disposable', category: 'Vapes', minQty: 25 },
+  { id: '12', name: 'Cold Cured Live Rosin 1g', category: 'Concentrates', minQty: 20 },
+  { id: '13', name: 'Delta 8 Gummies 500mg', category: 'Gummies', minQty: 50 },
+  { id: '14', name: 'Delta 9 Gummies 300mg', category: 'Gummies', minQty: 50 },
 ];
 
 // Context
@@ -69,7 +70,7 @@ const ProductsScreen = () => {
             <Text style={s.cardTitle}>{item.name}</Text>
             <Text style={s.cardCat}>{item.category}</Text>
           </View>
-          <Text style={s.price}>${item.price}/unit • Min: {item.minQty}</Text>
+          <Text style={s.price}>Min order: {item.minQty} units • Pricing on request</Text>
           <View style={s.cardRow}>
             <TextInput style={s.input} placeholder="Qty" keyboardType="numeric"
               value={qty[item.id] || ''} onChangeText={t => setQty({ ...qty, [item.id]: t })} />
@@ -85,7 +86,7 @@ const ProductsScreen = () => {
 
 const CartScreen = () => {
   const { cart, removeFromCart, clearCart } = useContext(CartContext);
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const totalUnits = cart.reduce((sum, i) => sum + i.qty, 0);
   const [info, setInfo] = useState({ name: '', email: '', phone: '', business: '', notes: '' });
 
   const submitOrder = () => {
@@ -93,7 +94,7 @@ const CartScreen = () => {
       return Alert.alert('Required', 'Please fill name, email, and business name');
     if (!cart.length) return Alert.alert('Empty Cart', 'Add products first');
     Alert.alert('Order Submitted',
-      `Thank you ${info.name}!\n\nOrder Total: $${total.toLocaleString()}\nWe'll contact you at ${info.email} to confirm.`,
+      `Thank you ${info.name}!\n\nOrder request: ${totalUnits.toLocaleString()} units\nWe'll email pricing to ${info.email} to confirm.`,
       [{ text: 'OK', onPress: clearCart }]
     );
   };
@@ -107,14 +108,14 @@ const CartScreen = () => {
             <View key={i.id} style={s.cartItem}>
               <View>
                 <Text style={s.cartName}>{i.name}</Text>
-                <Text style={s.cartQty}>{i.qty} × ${i.price} = ${(i.qty * i.price).toLocaleString()}</Text>
+                <Text style={s.cartQty}>{i.qty.toLocaleString()} units</Text>
               </View>
               <TouchableOpacity onPress={() => removeFromCart(i.id)}>
                 <Ionicons name="trash-outline" size={24} color="#e74c3c" />
               </TouchableOpacity>
             </View>
           ))}
-          <Text style={s.total}>Total: ${total.toLocaleString()}</Text>
+          <Text style={s.total}>Total: {totalUnits.toLocaleString()} units (pricing quoted by email)</Text>
         </>
       )}
       <Text style={s.section}>Business Information</Text>
@@ -129,7 +130,7 @@ const CartScreen = () => {
       <TextInput style={[s.formInput, s.notes]} placeholder="Order Notes" multiline
         value={info.notes} onChangeText={t => setInfo({ ...info, notes: t })} />
       <TouchableOpacity style={s.submitBtn} onPress={submitOrder}>
-        <Text style={s.submitTxt}>Submit Wholesale Order</Text>
+        <Text style={s.submitTxt}>Request Wholesale Quote</Text>
       </TouchableOpacity>
     </ScrollView>
   );
